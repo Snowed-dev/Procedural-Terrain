@@ -10,7 +10,7 @@ class MainWindow(QWidget):
         self.initUI()
 
     def initUI(self):
-        self.setGeometry(200, 200, 300, 200)
+        self.setGeometry(200, 200, 300, 600)  
         self.setWindowTitle('Execute Code Example')
 
         layout = QVBoxLayout(self)
@@ -18,41 +18,39 @@ class MainWindow(QWidget):
         self.button = QPushButton('Execute Code', self)
         layout.addWidget(self.button)
 
-        self.mountainlabel = QLabel("Mountains")
-        layout.addWidget(self.mountainlabel)
+        self.parameter_sliders = {}  
+        self.parameter_labels = {}  
 
-        # Create a slider for mountaincap
-        self.slider = QSlider(QtCore.Qt.Horizontal)
-        self.slider.setMinimum(0)
-        self.slider.setMaximum(100)
-        layout.addWidget(self.slider)
+        
+        for param, value in noisemap.terrain_parameters.items():
+            label = QLabel(f"{param.capitalize()} ({value * 100:.0f})")
+            layout.addWidget(label)
 
-        # Create a slider for thickforest
-        self.thickforestlabel = QLabel("Thick Forest")
-        layout.addWidget(self.thickforestlabel)
+            slider = QSlider(QtCore.Qt.Horizontal)
+            slider.setMinimum(0)
+            slider.setMaximum(100)
+            slider.setValue(int(value * 100))  
+            layout.addWidget(slider)
 
-        self.thickForestSlider = QSlider(QtCore.Qt.Horizontal)
-        self.thickForestSlider.setMinimum(0)
-        self.thickForestSlider.setMaximum(100)
-        layout.addWidget(self.thickForestSlider)
+            self.parameter_sliders[param] = slider
+            self.parameter_labels[param] = label
 
-        # Connect signals to slots
+            
+            slider.valueChanged.connect(lambda value, param=param: self.slider_value_changed(param, value))
+
+        
         self.button.clicked.connect(self.execute_external_code)
-        self.slider.valueChanged.connect(self.slider_value_changed)
-        self.thickForestSlider.valueChanged.connect(self.thickforestSliderValue)
-
-    def slider_value_changed(self, value):
-        normalized_mountaincap = value / 100.0  # Map slider value (0-100) to mountaincap range (0.0-1.0)
-        noisemap.terrain_parameters["mountaincap"] = normalized_mountaincap
-        self.mountainlabel.setText(f"Mountains (Value: {normalized_mountaincap * 100})")
-
-    def thickforestSliderValue(self, value):
-        changed_thickforest = value / 100.0
-        noisemap.terrain_parameters["thickforest"] = changed_thickforest
-        self.thickforestlabel.setText(f"Thick Forests (Value: {changed_thickforest})")
+    
+    def slider_value_changed(self, param, value):
+        normalized_value = value / 100.0
+        noisemap.terrain_parameters[param] = normalized_value
+        self.parameter_labels[param].setText(f"{param.capitalize()} ({normalized_value * 100:.0f})")
+        self.parameter_sliders[param].setToolTip(f"{param.capitalize()} (Value: {normalized_value * 100:.0f})")
 
     def execute_external_code(self):
-        noisemap.noisegen(self.slider.value())
+        slider_values = {param: slider.value() / 100.0 for param, slider in self.parameter_sliders.items()}
+        noisemap.noisegen(slider_values)
+
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)

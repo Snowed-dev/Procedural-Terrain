@@ -43,8 +43,8 @@ def noisegen(value):
                 pygame.draw.rect(screen, (40, 200, 0), pygame.Rect(j, i, 1, 1))
             elif column >= terrain_parameters["sand"]:
                 pygame.draw.rect(screen, (232, 232, 80), pygame.Rect(j, i, 1, 1))
-            elif column >= terrain_parameters["ocean"]:
-                pass
+            elif column <= terrain_parameters["ocean"]:
+                pygame.draw.rect(screen,(8,138,252), pygame.Rect(j,i,1,1))
 
     pygame.display.update()
 
